@@ -5,6 +5,8 @@ import { requireUser } from "@/lib/auth";
 import { formatDayLabel } from "@/lib/date";
 import { readDb } from "@/lib/store";
 
+export const dynamic = "force-dynamic";
+
 export default async function DashboardPage() {
   const user = await requireUser();
   const db = await readDb();
@@ -129,3 +131,4 @@ export default async function DashboardPage() {
     </AppShell>
   );
 }
+

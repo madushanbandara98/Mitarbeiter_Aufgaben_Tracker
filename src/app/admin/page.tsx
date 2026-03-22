@@ -3,6 +3,8 @@ import { AppShell } from "@/components/app-shell";
 import { requireAdmin } from "@/lib/auth";
 import { readDb, toPublicUser } from "@/lib/store";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminPage() {
   const user = await requireAdmin();
   const db = await readDb();
@@ -27,3 +29,4 @@ export default async function AdminPage() {
     </AppShell>
   );
 }
+

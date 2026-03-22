@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 
 import { getMongoDb } from "@/lib/mongodb";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   try {
     const db = await getMongoDb();
@@ -12,3 +14,4 @@ export async function GET() {
     return NextResponse.json({ ok: false, message }, { status: 500 });
   }
 }
+

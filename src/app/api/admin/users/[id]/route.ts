@@ -5,6 +5,8 @@ import { authCookieName } from "@/lib/auth";
 import { findSession, toPublicUser, updateDb } from "@/lib/store";
 import { validateAdminUser } from "@/lib/validation";
 
+export const dynamic = "force-dynamic";
+
 type Context = {
   params: Promise<{ id: string }>;
 };

@@ -1,11 +1,6 @@
 import type { Metadata } from "next";
-import { Geist } from "next/font/google";
 
 import "./globals.css";
-
-const geist = Geist({
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: "Mitarbeiter Aufgaben Tracker",
@@ -18,7 +13,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="de" className={`${geist.className} h-full antialiased`}>
+    <html lang="de" className="h-full antialiased">
       <body className="min-h-full bg-[color:var(--background)] text-[color:var(--foreground)]">{children}</body>
     </html>
   );

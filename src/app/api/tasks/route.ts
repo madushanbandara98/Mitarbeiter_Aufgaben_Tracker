@@ -5,6 +5,8 @@ import { authCookieName } from "@/lib/auth";
 import { findSession, sanitizeTask, updateDb } from "@/lib/store";
 import { validateTask } from "@/lib/validation";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(request: Request) {
   const cookieStore = await cookies();
   const token = cookieStore.get(authCookieName)?.value;
@@ -65,3 +67,4 @@ export async function POST(request: Request) {
 
   return NextResponse.json({ task }, { status: 201 });
 }
+

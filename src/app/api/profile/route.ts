@@ -5,6 +5,8 @@ import { authCookieName } from "@/lib/auth";
 import { findSession, toPublicUser, updateDb } from "@/lib/store";
 import { validateProfile } from "@/lib/validation";
 
+export const dynamic = "force-dynamic";
+
 export async function PATCH(request: Request) {
   const cookieStore = await cookies();
   const token = cookieStore.get(authCookieName)?.value;
@@ -74,3 +76,4 @@ export async function PATCH(request: Request) {
 
   return NextResponse.json({ user: result.user });
 }
+

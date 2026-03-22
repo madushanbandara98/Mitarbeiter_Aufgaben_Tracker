@@ -4,6 +4,8 @@ import { requireUser } from "@/lib/auth";
 import { getCurrentKW } from "@/lib/date";
 import { readDb } from "@/lib/store";
 
+export const dynamic = "force-dynamic";
+
 export default async function TasksPage() {
   const user = await requireUser();
   const db = await readDb();
@@ -33,3 +35,4 @@ export default async function TasksPage() {
     </AppShell>
   );
 }
+

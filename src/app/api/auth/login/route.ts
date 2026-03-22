@@ -8,6 +8,8 @@ import { hashPassword, isPasswordHash, verifyPassword } from "@/lib/password";
 import { toPublicUser, updateDb } from "@/lib/store";
 import { validateLogin } from "@/lib/validation";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(request: Request) {
   const payload = (await request.json()) as Record<string, unknown>;
   const validated = validateLogin(payload);
@@ -55,3 +57,4 @@ export async function POST(request: Request) {
 
   return NextResponse.json({ user: result.user, redirectTo: result.redirectTo });
 }
+

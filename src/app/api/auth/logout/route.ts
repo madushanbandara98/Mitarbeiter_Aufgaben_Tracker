@@ -4,6 +4,8 @@ import { NextResponse } from "next/server";
 import { authCookieName } from "@/lib/auth";
 import { updateDb } from "@/lib/store";
 
+export const dynamic = "force-dynamic";
+
 export async function POST() {
   const cookieStore = await cookies();
   const token = cookieStore.get(authCookieName)?.value;

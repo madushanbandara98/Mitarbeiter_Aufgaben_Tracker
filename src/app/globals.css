@@ -35,6 +35,7 @@ body {
     radial-gradient(circle at bottom right, rgba(31, 154, 82, 0.14), transparent 30%),
     linear-gradient(180deg, #f8fbff 0%, #eef5ff 55%, #ffffff 100%);
   color: var(--foreground);
+  font-family: Geist, "Geist Sans", "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
 }
 
 a {

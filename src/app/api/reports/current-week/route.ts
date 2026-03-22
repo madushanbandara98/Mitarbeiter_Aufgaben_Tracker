@@ -6,6 +6,8 @@ import { getCurrentKW, getWeekRange } from "@/lib/date";
 import { createWeeklyPdf } from "@/lib/pdf";
 import { findSession, readDb, toPublicUser } from "@/lib/store";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   const cookieStore = await cookies();
   const token = cookieStore.get(authCookieName)?.value;
@@ -42,3 +44,4 @@ export async function GET() {
     },
   });
 }
+
