@@ -303,7 +303,7 @@ export function AdminDashboard({ admin, users, tasks }: AdminDashboardProps) {
         </div>
       </section>
 
-      <section className="grid gap-5 xl:grid-cols-[340px_minmax(0,1.45fr)_340px]">
+      <section className="grid gap-5 xl:grid-cols-[340px_minmax(0,1fr)]">
         <aside className="theme-panel-dark rounded-[30px] p-5 text-white">
           <div className="flex items-center justify-between gap-3">
             <div>
@@ -382,83 +382,6 @@ export function AdminDashboard({ admin, users, tasks }: AdminDashboardProps) {
           </div>
         </aside>
 
-        <section className="theme-panel rounded-[30px] p-5 lg:p-6">
-          {selectedUser ? (
-            <>
-              <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
-                <div>
-                  <p className="theme-kicker">Tagesprotokoll</p>
-                  <h3 className="mt-2 text-3xl font-semibold tracking-tight">{selectedUser.fullName}</h3>
-                  <p className="theme-copy mt-2 text-sm leading-6">
-                    Vollstaendiges Task-Protokoll fuer den gewaehlten Tag inklusive Bearbeitungszeit, Wartezeit, Output und Systemnutzung.
-                  </p>
-                </div>
-                <div className="grid gap-3 sm:grid-cols-1">
-                  <label>
-                    <span className="mb-2 block text-xs font-semibold uppercase tracking-[0.22em] text-[color:var(--muted)]">
-                      Schnellauswahl
-                    </span>
-                    <select
-                      value={quickDateValue}
-                      onChange={(event) => setSelectedDate(event.target.value)}
-                      className="theme-input rounded-2xl px-4 py-3 text-sm"
-                    >
-                      <option value="">Verfuegbare Daten</option>
-                      {availableDates.length === 0 ? <option value={today}>Heute</option> : null}
-                      {availableDates.map((date) => (
-                        <option key={date} value={date}>
-                          {formatDayLabel(date)}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                </div>
-              </div>
-
-              <div className="mt-6 overflow-hidden rounded-[24px] border border-[color:var(--line)]">
-                <div className="hidden grid-cols-[1.15fr_0.8fr_0.75fr_0.75fr_1fr_1fr] gap-4 bg-[color:var(--foreground)] px-4 py-3 text-xs uppercase tracking-[0.18em] text-white/72 lg:grid">
-                  <span>Aufgabe</span>
-                  <span>Bereich</span>
-                  <span>Kategorie</span>
-                  <span>Dauer</span>
-                  <span>Output</span>
-                  <span>System</span>
-                </div>
-
-                <div className="bg-[color:var(--surface-strong)]">
-                  {selectedDayTasks.length === 0 ? (
-                    <div className="px-5 py-12 text-center text-sm text-[color:var(--muted)]">
-                      Fuer diesen Tag wurden keine Eintraege erfasst.
-                    </div>
-                  ) : (
-                    selectedDayTasks.map((task) => (
-                      <div
-                        key={task.id}
-                        className="grid gap-4 border-t border-[color:var(--line)] px-4 py-4 first:border-t-0 lg:grid-cols-[1.15fr_0.8fr_0.75fr_0.75fr_1fr_1fr]"
-                      >
-                        <div>
-                          <p className="font-semibold text-[color:var(--foreground)]">{task.aufgabe}</p>
-                          <p className="mt-1 text-xs text-[color:var(--muted)]">{task.kommentar || "Kein zusaetzlicher Kommentar"}</p>
-                        </div>
-                        <div className="text-sm text-[color:var(--muted)]">{task.aufgabenbereich}</div>
-                        <div className="text-sm text-[color:var(--muted)]">{task.kategorie}</div>
-                        <div>
-                          <p className="text-sm font-medium text-[color:var(--foreground)]">{formatMinutes(task.dauerMinuten)}</p>
-                          <p className="mt-1 text-xs text-[color:var(--muted)]">Wartezeit {formatMinutes(task.wartezeit)}</p>
-                        </div>
-                        <div className="text-sm text-[color:var(--muted)]">{task.output || "Nicht angegeben"}</div>
-                        <div className="text-sm text-[color:var(--muted)]">{task.systemTool || "Nicht angegeben"}</div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            </>
-          ) : (
-            <div className="text-sm text-[color:var(--muted)]">Keine Mitarbeiter auswaehlbar.</div>
-          )}
-        </section>
-
         <aside className="space-y-5">
           <section className="theme-panel rounded-[30px] p-5 lg:p-6">
             <p className="theme-kicker">Tageszusammenfassung</p>
@@ -514,6 +437,83 @@ export function AdminDashboard({ admin, users, tasks }: AdminDashboardProps) {
           </section>
         </aside>
       </section>
-    </div>
+
+      <section className="theme-panel rounded-[30px] p-5 lg:p-6">
+        {selectedUser ? (
+          <>
+            <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+              <div>
+                <p className="theme-kicker">Tagesprotokoll</p>
+                <h3 className="mt-2 text-3xl font-semibold tracking-tight">{selectedUser.fullName}</h3>
+                <p className="theme-copy mt-2 text-sm leading-6">
+                  Vollstaendiges Task-Protokoll fuer den gewaehlten Tag als lesbare Tabelle mit Zeiten, Output und Systemnutzung.
+                </p>
+              </div>
+              <div className="w-full max-w-[260px]">
+                <label>
+                  <span className="mb-2 block text-xs font-semibold uppercase tracking-[0.22em] text-[color:var(--muted)]">
+                    Schnellauswahl
+                  </span>
+                  <select
+                    value={quickDateValue}
+                    onChange={(event) => setSelectedDate(event.target.value)}
+                    className="theme-input rounded-2xl px-4 py-3 text-sm"
+                  >
+                    <option value="">Verfuegbare Daten</option>
+                    {availableDates.length === 0 ? <option value={today}>Heute</option> : null}
+                    {availableDates.map((date) => (
+                      <option key={date} value={date}>
+                        {formatDayLabel(date)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+            </div>
+
+            <div className="mt-6 overflow-hidden rounded-[24px] border border-[color:var(--line)]">
+              {selectedDayTasks.length === 0 ? (
+                <div className="bg-[color:var(--surface-strong)] px-5 py-12 text-center text-sm text-[color:var(--muted)]">
+                  Fuer diesen Tag wurden keine Eintraege erfasst.
+                </div>
+              ) : (
+                <div className="overflow-x-auto bg-[color:var(--surface-strong)]">
+                  <table className="min-w-full text-sm">
+                    <thead className="bg-[color:var(--foreground)] text-left text-xs uppercase tracking-[0.18em] text-white/72">
+                      <tr>
+                        <th className="px-4 py-3 font-medium">Aufgabe</th>
+                        <th className="px-4 py-3 font-medium">Bereich</th>
+                        <th className="px-4 py-3 font-medium">Kategorie</th>
+                        <th className="px-4 py-3 font-medium">Dauer</th>
+                        <th className="px-4 py-3 font-medium">Wartezeit</th>
+                        <th className="px-4 py-3 font-medium">Output</th>
+                        <th className="px-4 py-3 font-medium">System</th>
+                        <th className="px-4 py-3 font-medium">Kommentar</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {selectedDayTasks.map((task) => (
+                        <tr key={task.id} className="align-top border-t border-[color:var(--line)]">
+                          <td className="px-4 py-4 font-semibold text-[color:var(--foreground)]">{task.aufgabe}</td>
+                          <td className="px-4 py-4 text-[color:var(--muted)]">{task.aufgabenbereich}</td>
+                          <td className="px-4 py-4 text-[color:var(--muted)]">{task.kategorie}</td>
+                          <td className="px-4 py-4 text-[color:var(--foreground)]">{formatMinutes(task.dauerMinuten)}</td>
+                          <td className="px-4 py-4 text-[color:var(--muted)]">{formatMinutes(task.wartezeit)}</td>
+                          <td className="px-4 py-4 text-[color:var(--muted)]">{task.output || "Nicht angegeben"}</td>
+                          <td className="px-4 py-4 text-[color:var(--muted)]">{task.systemTool || "Nicht angegeben"}</td>
+                          <td className="px-4 py-4 text-[color:var(--muted)]">{task.kommentar || "Kein zusaetzlicher Kommentar"}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </>
+        ) : (
+          <div className="text-sm text-[color:var(--muted)]">Keine Mitarbeiter auswaehlbar.</div>
+        )}
+      </section>    </div>
   );
 }
+
