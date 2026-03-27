@@ -1,15 +1,25 @@
 import Link from "next/link";
 
+import { AdminDashboard } from "@/components/admin-dashboard";
 import { AppShell } from "@/components/app-shell";
 import { requireUser } from "@/lib/auth";
 import { formatDayLabel } from "@/lib/date";
-import { readDb } from "@/lib/store";
+import { readDb, toPublicUser } from "@/lib/store";
 
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
   const user = await requireUser();
   const db = await readDb();
+
+  if (user.userType === "admin") {
+    return (
+      <AppShell user={user}>
+        <AdminDashboard admin={user} users={db.users.map((entry) => toPublicUser(entry))} tasks={db.tasks} />
+      </AppShell>
+    );
+  }
+
   const tasks = db.tasks
     .filter((task) => task.employeeEmail === user.email)
     .sort((left, right) => left.datum.localeCompare(right.datum));
@@ -131,4 +141,3 @@ export default async function DashboardPage() {
     </AppShell>
   );
 }
-

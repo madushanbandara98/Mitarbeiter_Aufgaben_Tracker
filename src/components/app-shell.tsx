@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useMemo, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 
 import type { PublicUser } from "@/lib/types";
 
@@ -16,20 +16,11 @@ export function AppShell({ user, children }: AppShellProps) {
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const [pending, startTransition] = useTransition();
-
-  const navItems = useMemo(() => {
-    const items = [
-      { href: "/dashboard", label: "Dashboard" },
-      { href: "/tasks", label: "Aufgaben" },
-      { href: "/profile", label: "Profil" },
-    ];
-
-    if (user.userType === "admin") {
-      items.splice(1, 0, { href: "/admin", label: "Admin" });
-    }
-
-    return items;
-  }, [user.userType]);
+  const navItems = [
+    { href: "/dashboard", label: "Dashboard" },
+    { href: "/tasks", label: "Aufgaben" },
+    { href: "/profile", label: "Profil" },
+  ];
 
   async function logout() {
     await fetch("/api/auth/logout", { method: "POST" });

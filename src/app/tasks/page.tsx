@@ -10,7 +10,8 @@ export default async function TasksPage() {
   const user = await requireUser();
   const db = await readDb();
   const currentKw = getCurrentKW();
-  const tasks = (user.userType === "admin" ? db.tasks : db.tasks.filter((task) => task.employeeEmail === user.email))
+  const tasks = db.tasks
+    .filter((task) => task.employeeEmail === user.email)
     .sort((left, right) => right.datum.localeCompare(left.datum));
   const weekConfig = db.weekConfigs.find((config) => config.email === user.email && config.kw === currentKw) ?? null;
   const availableUsers = db.users
@@ -35,4 +36,3 @@ export default async function TasksPage() {
     </AppShell>
   );
 }
-

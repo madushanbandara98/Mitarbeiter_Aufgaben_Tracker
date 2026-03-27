@@ -67,7 +67,7 @@ export function TasksWorkspace({
 }: TasksWorkspaceProps) {
   const router = useRouter();
   const isAdmin = user.userType === "admin";
-  const defaultOwnerEmail = isAdmin ? availableUsers.find((entry) => entry.userType !== "admin")?.email ?? user.email : user.email;
+  const defaultOwnerEmail = user.email;
 
   const createEmptyTaskForm = () => ({
     employeeEmail: defaultOwnerEmail,
@@ -98,22 +98,15 @@ export function TasksWorkspace({
   const [taskErrors, setTaskErrors] = useState<Record<string, string>>({});
   const [weekErrors, setWeekErrors] = useState<Record<string, string>>({});
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [taskModalOpen, setTaskModalOpen] = useState(false);
   const [scope, setScope] = useState<"current" | "all">("current");
-  const [ownerFilter, setOwnerFilter] = useState<string>(isAdmin ? "all" : user.email);
   const [expandedDates, setExpandedDates] = useState<Record<string, boolean>>({});
   const [banner, setBanner] = useState("");
   const [pending, startTransition] = useTransition();
 
-  const filteredTasks = useMemo(() => {
-    if (!isAdmin || ownerFilter === "all") {
-      return tasks;
-    }
-    return tasks.filter((task) => task.employeeEmail === ownerFilter);
-  }, [isAdmin, ownerFilter, tasks]);
-
   const visibleTasks = useMemo(() => {
     if (scope === "all") {
-      return filteredTasks;
+      return tasks;
     }
 
     const now = new Date();
@@ -125,11 +118,11 @@ export function TasksWorkspace({
     const end = new Date(start);
     end.setDate(start.getDate() + 6);
 
-    return filteredTasks.filter((task) => {
+    return tasks.filter((task) => {
       const value = new Date(task.datum);
       return value >= start && value <= end;
     });
-  }, [filteredTasks, scope]);
+  }, [tasks, scope]);
 
   const groupedTasks = useMemo(() => {
     return visibleTasks.reduce<Record<string, TaskRecord[]>>((groups, task) => {
@@ -179,14 +172,17 @@ export function TasksWorkspace({
 
     setTaskErrors({});
     if (payload.task) {
-      setTasks((current) =>
-        editingId === null
-          ? [payload.task!, ...current]
-          : current.map((task) => (task.id === payload.task!.id ? payload.task! : task)),
-      );
+      setTasks((current) => {
+        const next =
+          editingId === null
+            ? [payload.task!, ...current]
+            : current.map((task) => (task.id === payload.task!.id ? payload.task! : task));
+        return next.filter((task) => task.employeeEmail === user.email);
+      });
     }
     setTaskForm(createEmptyTaskForm());
     setEditingId(null);
+    setTaskModalOpen(false);
     setBanner(editingId === null ? "Aufgabe gespeichert." : "Aufgabe aktualisiert.");
     startTransition(() => router.refresh());
   }
@@ -202,6 +198,7 @@ export function TasksWorkspace({
     if (editingId === id) {
       setTaskForm(createEmptyTaskForm());
       setEditingId(null);
+      setTaskModalOpen(false);
     }
     setBanner("Aufgabe geloescht.");
     startTransition(() => router.refresh());
@@ -209,6 +206,7 @@ export function TasksWorkspace({
 
   function startEdit(task: TaskRecord) {
     setEditingId(task.id);
+    setTaskModalOpen(true);
     setTaskErrors({});
     setTaskForm({
       employeeEmail: task.employeeEmail,
@@ -230,38 +228,31 @@ export function TasksWorkspace({
     });
   }
 
+  function closeTaskModal() {
+    setTaskModalOpen(false);
+    setTaskErrors({});
+    if (editingId === null) {
+      setTaskForm(createEmptyTaskForm());
+    }
+    setEditingId(null);
+  }
+
   return (
     <div className="space-y-6">
-      <header className="theme-panel rounded-[30px] p-6 lg:p-8">
-        <p className="theme-kicker">Execution Board</p>
-        <div className="mt-3 flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
-          <div>
-            <h2 className="text-3xl font-semibold tracking-tight">{isAdmin ? "Aufgaben fuer alle Teams verwalten" : "Aufgaben sauber erfassen und auswerten"}</h2>
-            <p className="theme-copy mt-2 max-w-4xl text-sm leading-6">
-              {isAdmin
-                ? "Admin-Benutzer sehen alle Aufgaben, koennen Eintraege auf beliebige Benutzer umhaengen, filtern und zentral verwalten."
-                : "Wochenkontext festlegen, Aufgaben dokumentieren, direkt bearbeiten und den aktuellen Stand als PDF exportieren."}
-            </p>
-          </div>
-          <a href="/api/reports/current-week" className="theme-button-primary inline-flex rounded-2xl px-5 py-3 text-sm font-semibold">
-            Wochenreport als PDF
-          </a>
-        </div>
-      </header>
-
-      {banner ? <div className="theme-message theme-message-success rounded-2xl px-4 py-3 text-sm">{banner}</div> : null}
-
-      <section className="grid gap-6 2xl:grid-cols-[420px_minmax(0,1fr)]">
-        <div className="theme-panel rounded-[28px] p-6">
-          <div className="flex items-center justify-between">
+      <section className="max-w-[880px]">
+        <div className="theme-panel rounded-[28px] p-5 lg:p-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <p className="theme-kicker">KW {currentKw}</p>
               <h3 className="mt-2 text-2xl font-semibold tracking-tight">Wocheneinstellungen</h3>
+              <p className="theme-copy mt-2 text-sm leading-6">
+                Arbeitszeit, Arbeitsort und Schicht fuer die aktuelle Woche kompakt pflegen.
+              </p>
             </div>
-            <span className="theme-pill rounded-full px-3 py-1 text-xs font-medium">{user.abteilung}</span>
+            <span className="theme-pill h-fit rounded-full px-3 py-1 text-xs font-medium">{user.abteilung}</span>
           </div>
 
-          <div className="mt-6 grid gap-4">
+          <div className="mt-6 grid gap-4 xl:grid-cols-3">
             <label>
               <span className="mb-2 block text-sm font-medium">Arbeitszeit in Stunden</span>
               <input type="number" min="1" max="80" value={weekConfig.arbeitszeit} onChange={(event) => setWeekConfig((current) => ({ ...current, arbeitszeit: event.target.value }))} className={`theme-input rounded-2xl px-4 py-3 text-sm ${weekErrors.arbeitszeit ? "theme-input-error" : ""}`} />
@@ -279,110 +270,132 @@ export function TasksWorkspace({
               <input value={weekConfig.schicht} onChange={(event) => setWeekConfig((current) => ({ ...current, schicht: event.target.value }))} className={`theme-input rounded-2xl px-4 py-3 text-sm ${weekErrors.schicht ? "theme-input-error" : ""}`} />
               {weekErrors.schicht ? <span className="mt-2 block text-xs text-red-600">{weekErrors.schicht}</span> : null}
             </label>
+          </div>
 
-            <button type="button" onClick={saveWeekConfig} disabled={pending} className="theme-button-accent rounded-2xl px-4 py-3 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-60">
+          <div className="mt-5 flex justify-end">
+            <button type="button" onClick={saveWeekConfig} disabled={pending} className="theme-button-accent rounded-2xl px-5 py-3 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-60">
               Einstellungen speichern
             </button>
           </div>
         </div>
+      </section>
 
-        <div className="theme-panel rounded-[28px] p-6">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="theme-kicker">Task Input</p>
-              <h3 className="mt-2 text-2xl font-semibold tracking-tight">{editingId === null ? "Neue Aufgabe anlegen" : "Aufgabe bearbeiten"}</h3>
+      <header className="theme-panel rounded-[30px] p-6 lg:p-8">
+        <p className="theme-kicker">Aufgabenbereich</p>
+        <div className="mt-3 flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+          <div>
+            <h2 className="text-3xl font-semibold tracking-tight">Aufgaben sauber erfassen und auswerten</h2>
+            <p className="theme-copy mt-2 max-w-4xl text-sm leading-6">
+              {isAdmin
+                ? "Admin-Benutzer erfassen hier ihre eigenen Aufgaben. Die teamweiten Datensaetze liegen auf dem Dashboard."
+                : "Wochenkontext festlegen, Aufgaben dokumentieren, direkt bearbeiten und den aktuellen Stand als PDF exportieren."}
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                setEditingId(null);
+                setTaskErrors({});
+                setTaskForm(createEmptyTaskForm());
+                setTaskModalOpen(true);
+              }}
+              className="theme-button-primary inline-flex rounded-2xl px-5 py-3 text-sm font-semibold"
+            >
+              Neue Aufgabe
+            </button>
+            <a href="/api/reports/current-week" className="inline-flex rounded-2xl px-5 py-3 text-sm font-semibold text-white transition" style={{ backgroundColor: "#16a34a", boxShadow: "0 18px 35px rgba(22, 163, 74, 0.28)" }}>
+              Wochenreport als PDF
+            </a>
+          </div>
+        </div>
+      </header>
+
+      {banner ? <div className="theme-message theme-message-success rounded-2xl px-4 py-3 text-sm">{banner}</div> : null}
+
+      {taskModalOpen ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 px-4 py-8 backdrop-blur-sm">
+          <div className="theme-panel max-h-[90vh] w-full max-w-6xl overflow-y-auto rounded-[28px] p-6 lg:p-8">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="theme-kicker">Task Input</p>
+                <h3 className="mt-2 text-2xl font-semibold tracking-tight">{editingId === null ? "Neue Aufgabe anlegen" : "Aufgabe bearbeiten"}</h3>
+              </div>
+              <button type="button" onClick={closeTaskModal} className="theme-button-secondary rounded-full px-3 py-1 text-xs font-medium">
+                Schliessen
+              </button>
             </div>
-            {editingId !== null ? (
-              <button
-                type="button"
-                onClick={() => {
-                  setEditingId(null);
-                  setTaskForm(createEmptyTaskForm());
-                  setTaskErrors({});
-                }}
-                className="theme-button-secondary rounded-full px-3 py-1 text-xs font-medium"
-              >
+
+            <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {isAdmin ? (
+                <label>
+                  <span className="mb-2 block text-sm font-medium">Benutzer</span>
+                  <select
+                    value={taskForm.employeeEmail}
+                    onChange={(event) => setTaskForm((current) => ({ ...current, employeeEmail: event.target.value }))}
+                    className={`theme-input rounded-2xl px-4 py-3 text-sm ${taskErrors.employeeEmail ? "theme-input-error" : ""}`}
+                  >
+                    {availableUsers.map((entry) => (
+                      <option key={entry.id} value={entry.email}>
+                        {entry.fullName} ({entry.email})
+                      </option>
+                    ))}
+                  </select>
+                  {taskErrors.employeeEmail ? <span className="mt-2 block text-xs text-red-600">{taskErrors.employeeEmail}</span> : null}
+                </label>
+              ) : null}
+
+              {taskFields.map(([name, label]) => (
+                <label key={name}>
+                  <span className="mb-2 block text-sm font-medium">{label}</span>
+                  <input
+                    type={name === "haufigkeit" || name === "dauerMinuten" || name === "wartezeit" ? "number" : "text"}
+                    min={name === "wartezeit" ? 0 : name === "haufigkeit" || name === "dauerMinuten" ? 1 : undefined}
+                    value={taskForm[name]}
+                    onChange={(event) => setTaskForm((current) => ({ ...current, [name]: event.target.value }))}
+                    className={`theme-input rounded-2xl px-4 py-3 text-sm ${taskErrors[name] ? "theme-input-error" : ""}`}
+                  />
+                  {taskErrors[name] ? <span className="mt-2 block text-xs text-red-600">{taskErrors[name]}</span> : null}
+                </label>
+              ))}
+
+              <label>
+                <span className="mb-2 block text-sm font-medium">Datum</span>
+                <input
+                  type="date"
+                  value={taskForm.datum}
+                  onChange={(event) => setTaskForm((current) => ({ ...current, datum: event.target.value }))}
+                  className={`theme-input rounded-2xl px-4 py-3 text-sm ${taskErrors.datum ? "theme-input-error" : ""}`}
+                />
+                {taskErrors.datum ? <span className="mt-2 block text-xs text-red-600">{taskErrors.datum}</span> : null}
+              </label>
+            </div>
+
+            <div className="mt-6 flex flex-wrap gap-3">
+              <button type="button" onClick={submitTask} disabled={pending} className="theme-button-primary rounded-2xl px-5 py-3 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-60">
+                {editingId === null ? "Aufgabe speichern" : "Aufgabe aktualisieren"}
+              </button>
+              <button type="button" onClick={closeTaskModal} className="theme-button-secondary rounded-2xl px-5 py-3 text-sm font-semibold">
                 Abbrechen
               </button>
-            ) : null}
+            </div>
           </div>
-
-          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {isAdmin ? (
-              <label>
-                <span className="mb-2 block text-sm font-medium">Benutzer</span>
-                <select
-                  value={taskForm.employeeEmail}
-                  onChange={(event) => setTaskForm((current) => ({ ...current, employeeEmail: event.target.value }))}
-                  className={`theme-input rounded-2xl px-4 py-3 text-sm ${taskErrors.employeeEmail ? "theme-input-error" : ""}`}
-                >
-                  {availableUsers.map((entry) => (
-                    <option key={entry.id} value={entry.email}>
-                      {entry.fullName} ({entry.email})
-                    </option>
-                  ))}
-                </select>
-                {taskErrors.employeeEmail ? <span className="mt-2 block text-xs text-red-600">{taskErrors.employeeEmail}</span> : null}
-              </label>
-            ) : null}
-
-            {taskFields.map(([name, label]) => (
-              <label key={name}>
-                <span className="mb-2 block text-sm font-medium">{label}</span>
-                <input
-                  type={name === "haufigkeit" || name === "dauerMinuten" || name === "wartezeit" ? "number" : "text"}
-                  min={name === "wartezeit" ? 0 : name === "haufigkeit" || name === "dauerMinuten" ? 1 : undefined}
-                  value={taskForm[name]}
-                  onChange={(event) => setTaskForm((current) => ({ ...current, [name]: event.target.value }))}
-                  className={`theme-input rounded-2xl px-4 py-3 text-sm ${taskErrors[name] ? "theme-input-error" : ""}`}
-                />
-                {taskErrors[name] ? <span className="mt-2 block text-xs text-red-600">{taskErrors[name]}</span> : null}
-              </label>
-            ))}
-
-            <label>
-              <span className="mb-2 block text-sm font-medium">Datum</span>
-              <input
-                type="date"
-                value={taskForm.datum}
-                onChange={(event) => setTaskForm((current) => ({ ...current, datum: event.target.value }))}
-                className={`theme-input rounded-2xl px-4 py-3 text-sm ${taskErrors.datum ? "theme-input-error" : ""}`}
-              />
-              {taskErrors.datum ? <span className="mt-2 block text-xs text-red-600">{taskErrors.datum}</span> : null}
-            </label>
-          </div>
-
-          <button type="button" onClick={submitTask} disabled={pending} className="theme-button-primary mt-6 rounded-2xl px-5 py-3 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-60">
-            {editingId === null ? "Aufgabe speichern" : "Aufgabe aktualisieren"}
-          </button>
         </div>
-      </section>
+      ) : null}
 
       <section className="theme-panel rounded-[30px] p-6">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
           <div>
             <p className="theme-kicker">Task Log</p>
-            <h3 className="mt-2 text-2xl font-semibold tracking-tight">Erfasste Aufgaben</h3>
+            <h3 className="mt-2 text-2xl font-semibold tracking-tight">{isAdmin ? "Eigene erfasste Aufgaben" : "Erfasste Aufgaben"}</h3>
           </div>
-          <div className="flex flex-col gap-3 sm:flex-row">
-            {isAdmin ? (
-              <select value={ownerFilter} onChange={(event) => setOwnerFilter(event.target.value)} className="theme-input rounded-full px-4 py-2 text-sm">
-                <option value="all">Alle Benutzer</option>
-                {availableUsers.map((entry) => (
-                  <option key={entry.id} value={entry.email}>
-                    {entry.fullName}
-                  </option>
-                ))}
-              </select>
-            ) : null}
-            <div className="flex gap-3">
-              <button type="button" onClick={() => setScope("current")} className={`rounded-full px-4 py-2 text-sm font-medium transition ${scope === "current" ? "theme-button-primary" : "theme-button-secondary"}`}>
-                Aktuelle Woche
-              </button>
-              <button type="button" onClick={() => setScope("all")} className={`rounded-full px-4 py-2 text-sm font-medium transition ${scope === "all" ? "theme-button-primary" : "theme-button-secondary"}`}>
-                Alle Aufgaben
-              </button>
-            </div>
+          <div className="flex gap-3">
+            <button type="button" onClick={() => setScope("current")} className={`rounded-full px-4 py-2 text-sm font-medium transition ${scope === "current" ? "theme-button-primary" : "theme-button-secondary"}`}>
+              Aktuelle Woche
+            </button>
+            <button type="button" onClick={() => setScope("all")} className={`rounded-full px-4 py-2 text-sm font-medium transition ${scope === "all" ? "theme-button-primary" : "theme-button-secondary"}`}>
+              Alle Aufgaben
+            </button>
           </div>
         </div>
 
@@ -464,3 +477,6 @@ export function TasksWorkspace({
     </div>
   );
 }
+
+
+
