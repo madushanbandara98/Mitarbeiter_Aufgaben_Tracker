@@ -1,73 +1,116 @@
 # Mitarbeiter Aufgaben Tracker
 
-A German-language web application for recording employee tasks, analyzing weekly workloads, and creating weekly PDF reports. Employees can manage their own work data, while administrators get a team-wide overview and can maintain user profiles and roles.
+A full-stack employee task and workload management application built with Next.js, TypeScript, and MongoDB.
 
-## Features
+The application helps employees document recurring work, track the time spent on tasks, identify waiting periods, and generate weekly reports. Administrators receive a team-wide overview of workloads and can manage employee information from one central dashboard.
 
-- Account registration and login with `scrypt` password hashing
-- Role-based access for employees and administrators
-- Employee dashboard with workload and waiting-time summaries
-- Create, edit, filter, and delete detailed task records
-- Weekly configuration for working hours, location, and shift
-- Downloadable PDF report for the current calendar week
-- Editable user profiles with optional profile images
-- Admin dashboard with team metrics, employee details, and user management
-- Persistent MongoDB storage
-- Responsive German-language interface
+> The user interface is in German because the application was designed for a German-speaking workplace.
 
-## Tech stack
+## Project overview
 
-- [Next.js 16](https://nextjs.org/) with the App Router
-- [React 19](https://react.dev/)
-- [TypeScript](https://www.typescriptlang.org/)
-- [Tailwind CSS 4](https://tailwindcss.com/)
-- [MongoDB](https://www.mongodb.com/)
+Many recurring workplace activities are difficult to evaluate when they are recorded in spreadsheets or described only informally. This project turns that information into structured, searchable data.
 
-## Prerequisites
+Employees can record what they do, how often they do it, how long it takes, which tools and dependencies are involved, and whether the work creates value. The application automatically calculates weekly effort and presents the results in dashboards and downloadable reports.
 
-Before starting, install:
+## Key features
+
+### For employees
+
+- Register and sign in securely
+- Create, edit, filter, and delete task records
+- Document frequency, duration, waiting time, output, tools, and dependencies
+- Classify work as value-adding or non-value-adding
+- Add improvement ideas and comments
+- Configure weekly working hours, location, and shift
+- View workload and waiting-time summaries by day
+- Download a PDF report for the current calendar week
+- Maintain a personal employee profile
+
+### For administrators
+
+- View team-wide workload metrics from one dashboard
+- Compare employees, departments, task volume, and recorded hours
+- Inspect individual employee profiles and task details
+- Update user information and access roles
+- Assign and manage tasks while preserving employee ownership
+
+## What this project demonstrates
+
+- Building a full-stack application with the Next.js App Router
+- Designing authenticated and role-protected application flows
+- Creating REST-style route handlers with server-side validation
+- Persisting related user, task, session, and weekly configuration data in MongoDB
+- Hashing passwords with Node.js `scrypt`
+- Keeping employee data consistent when profile information changes
+- Calculating workload statistics from detailed operational data
+- Generating PDF reports without relying on an external reporting service
+- Creating a responsive interface for both desktop and mobile use
+
+## Technology stack
+
+| Area | Technology |
+| --- | --- |
+| Framework | Next.js 16 with App Router |
+| Frontend | React 19, TypeScript |
+| Styling | Tailwind CSS 4 |
+| Database | MongoDB |
+| Authentication | Cookie-based sessions and `scrypt` password hashing |
+| Reporting | Server-generated PDF documents |
+| Validation | Custom server-side validation |
+
+## Application structure
+
+```text
+src/
+├── app/             # Pages and API route handlers
+├── components/      # Authentication, dashboard, task, and profile UI
+└── lib/             # Auth, MongoDB, validation, date, and PDF utilities
+```
+
+Important application areas include:
+
+- `/dashboard` — personal workload overview or administrator dashboard
+- `/tasks` — task entry, editing, filtering, and weekly configuration
+- `/profile` — employee profile management
+- `/login` and `/register` — authentication flows
+- `/api/*` — server-side authentication, task, profile, report, and admin endpoints
+
+## Run the project locally
+
+### Requirements
 
 - Node.js 20.9 or newer
 - npm
-- A local MongoDB instance or a MongoDB Atlas database
+- A local MongoDB instance or MongoDB Atlas database
 
-## Getting started
+### Installation
 
-1. Clone the repository and enter the project directory:
+```bash
+git clone https://github.com/madushanbandara98/Mitarbeiter_Aufgaben_Tracker.git
+cd Mitarbeiter_Aufgaben_Tracker
+npm ci
+```
 
-   ```bash
-   git clone https://github.com/madushanbandara98/Mitarbeiter_Aufgaben_Tracker.git
-   cd Mitarbeiter_Aufgaben_Tracker
-   ```
+Create a `.env.local` file in the project root:
 
-2. Install the dependencies:
+```env
+MONGODB_URI=mongodb://127.0.0.1:27017
+MONGODB_DB_NAME=tracker
+```
 
-   ```bash
-   npm ci
-   ```
+`MONGODB_DB_NAME` is optional and defaults to `tracker`. Environment files and database credentials must not be committed.
 
-3. Create a `.env.local` file in the project root:
+Start the development server:
 
-   ```env
-   MONGODB_URI=mongodb://127.0.0.1:27017
-   MONGODB_DB_NAME=tracker
-   ```
+```bash
+npm run dev
+```
 
-   `MONGODB_DB_NAME` is optional and defaults to `tracker`. Do not commit `.env.local` or database credentials.
+Open [http://localhost:3000](http://localhost:3000) and register an account. MongoDB collections are created automatically when data is first stored.
 
-4. Start the development server:
+## Create an administrator
 
-   ```bash
-   npm run dev
-   ```
-
-5. Open [http://localhost:3000](http://localhost:3000). Register a new account to begin.
-
-MongoDB collections are created automatically when data is first written. No manual schema migration is required.
-
-## Administrator access
-
-Newly registered accounts receive the `normal` user type. To create the first administrator, update that user's document in the MongoDB `users` collection:
+New accounts are created as normal users. To create the first administrator, update the account in the MongoDB `users` collection:
 
 ```javascript
 db.users.updateOne(
@@ -76,49 +119,25 @@ db.users.updateOne(
 )
 ```
 
-Log out and sign in again after changing the user type. Administrators can then update other users from the admin dashboard.
+Log out and sign in again after changing the user type.
 
-## Available scripts
+## Development commands
 
-| Command | Description |
+| Command | Purpose |
 | --- | --- |
-| `npm run dev` | Start the local development server |
-| `npm run build` | Create an optimized production build |
+| `npm run dev` | Start the development server |
+| `npm run build` | Create a production build |
 | `npm run start` | Run the production build |
-| `npm run lint` | Check the code with ESLint |
+| `npm run lint` | Run ESLint checks |
 
-## Project structure
+## Current status
 
-```text
-src/
-├── app/             # Pages and API route handlers
-├── components/      # Authentication, dashboard, task, and profile UI
-└── lib/             # Auth, MongoDB, validation, dates, and PDF utilities
-```
+The core employee and administrator workflows are implemented. Potential future improvements include automated tests, audit logging, password recovery, session expiration, richer PDF formatting, and deployment of a public demonstration environment.
 
-The main application routes are:
+## Author
 
-- `/login` and `/register` — authentication
-- `/dashboard` — employee or admin overview
-- `/tasks` — task and weekly configuration management
-- `/profile` — personal profile management
-- `/api/health/db` — MongoDB connectivity check
-
-## Production notes
-
-Before deploying this project publicly:
-
-- Configure `MONGODB_URI` and, if needed, `MONGODB_DB_NAME` in the hosting environment.
-- Restrict MongoDB network access and use a database user with only the permissions the app needs.
-- Serve the application over HTTPS.
-- Review session-cookie settings and set `secure: true` for HTTPS production deployments.
-- Add rate limiting and CSRF protection if the application will be exposed to untrusted users.
-- Do not use real employee or company data in a public demo database.
-
-## Contributing
-
-Contributions are welcome. Create a branch, make your changes, run `npm run lint` and `npm run build`, then open a pull request with a clear description of the change.
+Developed by **Madushan Bandara** as a portfolio project demonstrating full-stack web development, database integration, authentication, reporting, and responsive interface design.
 
 ## License
 
-No license has been added yet. Until a license is provided, the source code remains under the copyright of its owner and is not automatically licensed for reuse.
+No open-source license has been added. The source code remains under the copyright of its owner and is not automatically licensed for reuse.
